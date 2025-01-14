@@ -252,26 +252,24 @@ async function analyzeCode(
  * @returns {string} The generated prompt string for the review task.
  */
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
-- IMPORTANT: NEVER suggest adding comments to the code.
+  return `You are a strict code reviewer. Follow these rules:
+1. Output must be valid JSON in this exact format:
+   {"reviews": [{"lineNumber": <line_number>, "reviewComment": "<review comment>"}]}
+2. If no improvements are needed, return:
+   {"reviews": []}
+3. Provide only critical or neutral feedback; do not offer any praise or compliments.
+4. Do not suggest adding comments in the code.
+5. Use the pull request title and description only as context; do not comment on them directly.
+6. Refer to specific line numbers from the diff when making suggestions.
+7. Return your review comments using GitHub Markdown (e.g., backticks for code snippets).
 
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
-  
-Pull request title: ${prDetails.title}
-Pull request description:
-
----
-${prDetails.description}
----
-
-Git diff to review:
+Review the code diff in file "${
+  file.to
+}", considering the pull request title "${
+  prDetails.title
+}" and description "${
+  prDetails.description
+}". Only comment on the code presented in:
 
 \`\`\`diff
 ${chunk.content}
